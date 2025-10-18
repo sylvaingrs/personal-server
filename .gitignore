@@ -1,0 +1,23 @@
+# Environment
+.env
+
+# Volumes Docker (NE JAMAIS COMMIT !)
+nginx/certs/
+nginx/acme/
+mariadb/data/
+
+# Node modules
+**/node_modules/
+**/dist/
+**/.vite/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+*.tsbuildinfo
+nginx/html/.well-known/

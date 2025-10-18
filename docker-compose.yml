@@ -1,0 +1,93 @@
+services:
+  # Reverse Proxy Nginx
+  nginx-proxy:
+    image: nginxproxy/nginx-proxy:alpine
+    container_name: nginx-proxy
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - ./nginx/certs:/etc/nginx/certs:rw
+      - ./nginx/vhost.d:/etc/nginx/vhost.d
+      - ./nginx/html:/usr/share/nginx/html
+    networks:
+      - web
+
+  # ACME companion pour HTTPS automatique
+  nginx-proxy-acme:
+    image: nginxproxy/acme-companion:latest
+    container_name: nginx-proxy-acme
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./nginx/certs:/etc/nginx/certs:rw
+      - ./nginx/vhost.d:/etc/nginx/vhost.d
+      - ./nginx/html:/usr/share/nginx/html
+      - ./nginx/acme:/etc/acme.sh
+    environment:
+      - DEFAULT_EMAIL=${EMAIL}
+      - NGINX_PROXY_CONTAINER=nginx-proxy
+      - ACME_CA_URI=https://acme-staging-v02.api.letsencrypt.org/directory
+    depends_on:
+      - nginx-proxy
+    networks:
+      - web
+
+  # Base de données MariaDB
+  mariadb:
+    image: mariadb:11
+    container_name: mariadb
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+    volumes:
+      - ./mariadb/data:/var/lib/mysql
+    networks:
+      - web
+
+  # Nginx pour servir le site statique HTML
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontend
+    restart: always
+    environment:
+      - VIRTUAL_HOST=${DOMAIN},www.${DOMAIN}
+      - LETSENCRYPT_HOST=${DOMAIN},www.${DOMAIN}
+      - LETSENCRYPT_EMAIL=${EMAIL}
+    networks:
+      - web
+
+  # API Node.js TypeScript
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: backend
+    restart: always
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - PORT=${NODE_PORT}
+      - DOMAIN=${DOMAIN}
+      - DB_HOST=mariadb
+      - DB_PORT=3306
+      - DB_USER=${MYSQL_USER}
+      - DB_PASSWORD=${MYSQL_PASSWORD}
+      - DB_NAME=${MYSQL_DATABASE}
+      - VIRTUAL_HOST=api.${DOMAIN}
+      - LETSENCRYPT_HOST=api.${DOMAIN}
+      - LETSENCRYPT_EMAIL=${EMAIL}
+    depends_on:
+      - mariadb
+    networks:
+      - web
+
+networks:
+  web:
+    driver: bridge
