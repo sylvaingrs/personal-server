@@ -19,8 +19,8 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const apiUrl: string = import.meta.env.DEV 
-    ? 'http://localhost:3000/health'  // Dev local
+  const apiUrlHealth: string = (import.meta as any).env.DEV 
+    ? `${(import.meta as any).env.VITE_API_URL}/health`  // Dev local
     : `${window.location.protocol}//api.${window.location.hostname}/health`;
 
   const fetchData = async () => {
@@ -28,7 +28,7 @@ function App() {
     setError(null)
 
     try {
-      const res = await fetch(apiUrl);
+      const res = await fetch(apiUrlHealth);
       if (!res.ok) {
         throw new Error('API error');
       }

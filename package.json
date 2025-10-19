@@ -1,4 +1,8 @@
 {
+  "scripts": {
+    "up": "docker compose up -d",
+    "down": "docker compose down"
+  },
   "devDependencies": {
     "tailwindcss-animate": "^1.0.7"
   }

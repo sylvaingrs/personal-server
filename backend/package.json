@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "NODE_ENV=development ts-node-dev --respawn --env-file .env.development src/server.ts",
     "build": "tsc",
-    "start": "NODE_ENV=production node dist/server.js"
+    "start": "NODE_ENV=production node dist/server.js",
+    "start-db": "docker compose -f docker-compose.dev.yml up -d",
+    "stop-db": "docker compose -f docker-compose.dev.yml down"
   },
   "dependencies": {
     "alpinejs": "^3.15.0",
