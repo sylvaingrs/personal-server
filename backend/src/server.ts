@@ -3,22 +3,27 @@ import cors from 'cors';
 import mysql from 'mysql2/promise';
 
 const app = express()
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 3000;
+
+const isDev = process.env.NODE_ENV === 'development';
+const apiUrl: string = isDev ? 'http://localhost:3000' : 'https://api.sylvain-nas.ovh';
 
 // Middleware
 app.use(cors({
-  origin: [
-    `https://${process.env.DOMAIN}`,
-    `https://www.${process.env.DOMAIN}`,
-  ],
+  origin: isDev
+    ? ['http://localhost:5173', 'http://localhost:3000']  // Dev
+    : [
+        `https://${process.env.DOMAIN}`,
+        `https://www.${process.env.DOMAIN}`,
+      ],  // Prod
   credentials: true,
 }));
 app.use(express.json());
 
 // Database configuration
 const dbConfig = {
-    host: process.env.DB_HOST,
-    port: parseInt(process.env.DB_PORT || ''),
+    host: process.env.DB_HOST || 'localhost',
+    port: parseInt(process.env.DB_PORT || '3306'),
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
@@ -253,7 +258,7 @@ async function startServer() {
     app.listen(PORT, () => {
         console.log(`Server started on port ${PORT}`);
         console.log(`Environment: ${process.env.NODE_ENV}`);
-        console.log(`Can access on: https://api.sylvain-nas.ovh`);
+        console.log(`Can access on: ${apiUrl}`);
     })
 }
 

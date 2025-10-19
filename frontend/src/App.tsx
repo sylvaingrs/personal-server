@@ -19,14 +19,15 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const apiUrl: string = import.meta.env.DEV 
+    ? 'http://localhost:3000/health'  // Dev local
+    : `${window.location.protocol}//api.${window.location.hostname}/health`;
+
   const fetchData = async () => {
     setLoading(true);
     setError(null)
 
     try {
-      const protocol = window.location.protocol
-      const apiUrl = `${protocol}//api.${window.location.hostname}/health`;
-
       const res = await fetch(apiUrl);
       if (!res.ok) {
         throw new Error('API error');
