@@ -22,7 +22,7 @@ app.use(express.json());
 
 // Database configuration
 const dbConfig = {
-    host: process.env.DB_HOST || 'localhost',
+    host: isDev ? 'localhost' : process.env.DB_HOST || 'mariadb',
     port: parseInt(process.env.DB_PORT || '3306'),
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
@@ -93,7 +93,8 @@ app.get('/', (req: Request, res: Response) => {
             'GET /status',
             'GET /hello/:name',
             'POST /test',
-            'GET /db-test', 
+            'GET /db-test',
+            'GET /users'
         ]
     });
 });
@@ -142,6 +143,19 @@ app.get('/db-test', async (req: Request, res: Response) => {
     res.status(500).json({
       error: 'Database connection error',
       message: error instanceof Error ? error.message : 'Unknow error'
+    });
+  }
+});
+
+app.get('/users', async (req: Request, res: Response) => {
+  
+  try {
+    const [rows] = await pool.query(`SELECT * FROM user`);
+    res.json(rows);
+  } catch(err) {
+    res.status(500).json({
+      error: 'Database query error',
+      message: err instanceof Error ? err.message : 'Unknow error'
     });
   }
 });
