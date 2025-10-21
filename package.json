@@ -1,9 +1,25 @@
 {
+  "type": "module",
   "scripts": {
     "up": "docker compose up -d",
-    "down": "docker compose down"
+    "down": "docker compose down",
+    "lint": "eslint . --ext ts,tsx,js,jsx --max-warnings=0",
+    "lint:fix": "eslint . --ext ts,tsx,js,jsx --fix",
+    "format": "prettier --write ."
   },
   "devDependencies": {
-    "tailwindcss-animate": "^1.0.7"
+    "@eslint/js": "^9.38.0",
+    "@typescript-eslint/eslint-plugin": "^8.46.2",
+    "@typescript-eslint/parser": "^8.46.2",
+    "eslint": "^9.38.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint-plugin-prettier": "^5.5.4",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.0.0",
+    "prettier": "^3.6.2",
+    "tailwindcss-animate": "^1.0.7",
+    "typescript-eslint": "^8.46.2"
   }
 }

@@ -1,33 +1,32 @@
-import express, { NextFunction, Request, Response } from 'express';
+import express, { Request, Response } from 'express';
 import cors from 'cors';
 import mysql from 'mysql2/promise';
 
-const app = express()
+const app = express();
 const PORT = process.env.PORT || 3000;
 
 const isDev = process.env.NODE_ENV === 'development';
 const apiUrl: string = isDev ? 'http://localhost:3000' : 'https://api.sylvain-nas.ovh';
 
 // Middleware
-app.use(cors({
-  origin: isDev
-    ? ['http://localhost:5173', 'http://localhost:3000']  // Dev
-    : [
-        `https://${process.env.DOMAIN}`,
-        `https://www.${process.env.DOMAIN}`,
-      ],  // Prod
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: isDev
+      ? ['http://localhost:5173', 'http://localhost:3000'] // Dev
+      : [`https://${process.env.DOMAIN}`, `https://www.${process.env.DOMAIN}`], // Prod
+    credentials: true,
+  }),
+);
 app.use(express.json());
 
 // Database configuration
 const dbConfig = {
-    host: isDev ? 'localhost' : process.env.DB_HOST || 'mariadb',
-    port: parseInt(process.env.DB_PORT || '3306'),
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-}
+  host: isDev ? 'localhost' : process.env.DB_HOST || 'mariadb',
+  port: parseInt(process.env.DB_PORT || '3306'),
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+};
 
 // connection pool
 let pool: mysql.Pool;
@@ -35,28 +34,29 @@ let pool: mysql.Pool;
 async function initDatabase() {
   const maxRetries = 30;
   const retryDelay = 3000;
-  
-  for (let i = 0; i < maxRetries; i++) {
-    try {
+
+  try {
+    for (let i = 0; i < maxRetries; i++) {
+      try {
         pool = mysql.createPool(dbConfig);
         await pool.query('SELECT 1');
         console.log('Connection to MariaDb succeed');
         return;
-    } catch(error) {
-      console.log(`Tentative ${i + 1}/${maxRetries} - MariaDB not ready yet, next try in ${retryDelay/1000}s...`);
-      if (i === maxRetries - 1) {
-        console.error('Impossible to connect to MariaDb after ', maxRetries, ' tentatives');
-        console.error('Connection error to MariaDb: ', error);
-      } else {
-        await new Promise(resolve => setTimeout(resolve, retryDelay));
-      }    
+      } catch (error) {
+        console.log(
+          `Tentative ${i + 1}/${maxRetries} - MariaDB not ready yet, next try in ${retryDelay / 1000}s...`,
+        );
+        if (i === maxRetries - 1) {
+          console.error('Impossible to connect to MariaDb after ', maxRetries, ' tentatives');
+          console.error('Connection error to MariaDb: ', error);
+        } else {
+          await new Promise((resolve) => setTimeout(resolve, retryDelay));
+        }
+      }
     }
+  } catch (error) {
+    console.error('Connection error to MariaDb: ', error);
   }
-    try {
-
-    } catch(error) {
-        console.error('Connection error to MariaDb: ', error);
-    }
 }
 
 // Routes
@@ -75,37 +75,37 @@ app.get('/api/error400json', (req, res) => {
 
 // Health check
 app.get('/health', (req: Request, res: Response) => {
-    res.json({
-        status: 'online',
-        timeStamp: new Date().toISOString(),
-        uptime: process.uptime(),
-    });
+  res.json({
+    status: 'online',
+    timeStamp: new Date().toISOString(),
+    uptime: process.uptime(),
+  });
 });
 
 // Main Route
 app.get('/', (req: Request, res: Response) => {
-    res.json({
-        message: 'API Node.js on Raspberry PI 5',
-        version: '1.0.0',
-        endpoints: [
-            'GET /',
-            'GET /health',
-            'GET /status',
-            'GET /hello/:name',
-            'POST /test',
-            'GET /db-test',
-            'GET /users'
-        ]
-    });
+  res.json({
+    message: 'API Node.js on Raspberry PI 5',
+    version: '1.0.0',
+    endpoints: [
+      'GET /',
+      'GET /health',
+      'GET /status',
+      'GET /hello/:name',
+      'POST /test',
+      'GET /db-test',
+      'GET /users',
+    ],
+  });
 });
 
 // Hello with parameters
 app.get('/hello/:name', (req: Request, res: Response) => {
-    const name = req.params;
-    res.json({
-        message: `Bonjour ${name}!`,
-        timetamp: new Date().toISOString(),
-    });
+  const name = req.params;
+  res.json({
+    message: `Bonjour ${name}!`,
+    timetamp: new Date().toISOString(),
+  });
 });
 
 // Test POST
@@ -114,7 +114,7 @@ app.post('/test', (req: Request, res: Response) => {
   res.json({
     message: 'Data received',
     received: data,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 });
 
@@ -126,7 +126,7 @@ app.get('/status', (req: Request, res: Response) => {
     memory: process.memoryUsage(),
     platform: process.platform,
     nodeVersion: process.version,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 });
 
@@ -137,25 +137,24 @@ app.get('/db-test', async (req: Request, res: Response) => {
     res.json({
       message: 'Database connection succeed',
       data: rows,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   } catch (error) {
     res.status(500).json({
       error: 'Database connection error',
-      message: error instanceof Error ? error.message : 'Unknow error'
+      message: error instanceof Error ? error.message : 'Unknow error',
     });
   }
 });
 
 app.get('/users', async (req: Request, res: Response) => {
-  
   try {
     const [rows] = await pool.query(`SELECT * FROM user`);
     res.json(rows);
-  } catch(err) {
+  } catch (err) {
     res.status(500).json({
       error: 'Database query error',
-      message: err instanceof Error ? err.message : 'Unknow error'
+      message: err instanceof Error ? err.message : 'Unknow error',
     });
   }
 });
@@ -164,17 +163,16 @@ app.use((req: Request, res: Response) => {
   res.status(404).send(errorPage(404, 'Page not found'));
 });
 
-app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+app.use((err: Error, req: Request, res: Response) => {
   console.error('Server error: ', err);
   res.status(500).send(errorPage(500, 'Internal server error'));
 });
 
-
 function errorPage(statusCode: number, message: string): string {
-    const titles: Record<number, string> = {
+  const titles: Record<number, string> = {
     400: 'Requête incorrecte',
     404: 'Page non trouvée',
-    500: 'Erreur serveur'
+    500: 'Erreur serveur',
   };
 
   return `
@@ -267,13 +265,13 @@ function errorPage(statusCode: number, message: string): string {
 }
 
 async function startServer() {
-    await initDatabase();
+  await initDatabase();
 
-    app.listen(PORT, () => {
-        console.log(`Server started on port ${PORT}`);
-        console.log(`Environment: ${process.env.NODE_ENV}`);
-        console.log(`Can access on: ${apiUrl}`);
-    })
+  app.listen(PORT, () => {
+    console.log(`Server started on port ${PORT}`);
+    console.log(`Environment: ${process.env.NODE_ENV}`);
+    console.log(`Can access on: ${apiUrl}`);
+  });
 }
 
 startServer();
