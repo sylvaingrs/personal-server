@@ -147,14 +147,33 @@ app.get('/db-test', async (req: Request, res: Response) => {
   }
 });
 
-app.get('/users', async (req: Request, res: Response) => {
+app.get('/api/users', async (req: Request, res: Response) => {
   try {
-    const [rows] = await pool.query(`SELECT * FROM user`);
+    const [rows] = await pool.query(`SELECT * FROM users`);
     res.json(rows);
   } catch (err) {
     res.status(500).json({
       error: 'Database query error',
       message: err instanceof Error ? err.message : 'Unknow error',
+    });
+  }
+});
+
+app.post('/users/create', async (req: Request, res: Response) => {
+  try {
+    const data = req.body;
+    const name = data.name;
+
+    await pool.query(`INSERT INTO users (name) VALUES ('${name}')`);
+
+    res.json({
+      message: 'User created',
+      received: data,
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: 'Database query error',
+      message: error instanceof Error ? error.message : 'Unknow error',
     });
   }
 });
