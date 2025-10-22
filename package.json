@@ -1,9 +1,12 @@
 {
   "scripts": {
-    "up": "docker compose up -d",
+    "up": "docker compose up -d --build",
     "down": "docker compose down"
   },
   "devDependencies": {
     "tailwindcss-animate": "^1.0.7"
+  },
+  "dependencies": {
+    "react-router-dom": "^7.9.4"
   }
 }
