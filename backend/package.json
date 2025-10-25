@@ -4,7 +4,7 @@
   "description": "API Node.js pour Raspberry Pi",
   "main": "dist/server.js",
   "scripts": {
-    "dev": "NODE_ENV=development ts-node-dev --respawn --env-file .env.development src/server.ts",
+    "dev": "NODE_ENV=development ts-node-dev --respawn --env-file ../.env src/server.ts",
     "build": "tsc",
     "start": "NODE_ENV=production node dist/server.js",
     "start-db": "docker compose -f docker-compose.dev.yml up -d",
