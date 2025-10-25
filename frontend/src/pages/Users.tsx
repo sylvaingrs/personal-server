@@ -13,7 +13,7 @@ export default function Users() {
 
   useEffect(() => {
     const loadUsers = async () => {
-      const { data, error } = await fetchData<User[]>(`${import.meta.env.VITE_API_URL}/api/users`);
+      const { data, error } = await fetchData<User[]>(`${(import.meta as any).env.VITE_API_URL}/api/users`);
       if (error) {
         setError(error.message);
       } else if (data) {
