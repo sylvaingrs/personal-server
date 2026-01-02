@@ -2,14 +2,16 @@ import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 
 import Home from './pages/Home';
 import Status from './pages/Status';
-import './App.css';
 import Users from './pages/Users';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { Button } from './components/ui/button';
+import { Alert, AlertDescription, AlertTitle } from './components/ui/alert';
+
 import { mainUrl } from './lib/utils';
 import { clearAccessToken } from './lib/auth';
+import { useState } from 'react';
 
 function App() {
   return (
@@ -31,6 +33,8 @@ function App() {
 }
 
 function AppLayout() {
+  const [showAlert, setShowAlert] = useState(false);
+
   return (
     <>
       <nav className="p-4 bg-slate-800 text-white flex justify-center gap-6">
@@ -43,24 +47,36 @@ function AppLayout() {
         <Link to="/users" className="hover:underline">
           Utilisateurs
         </Link>
-        <Button
-          onClick={async () => {
-            try {
-              await fetch(`${mainUrl}/api/auth/logout`, {
-                method: 'POST',
-                credentials: 'include',
-              });
-            } catch (err) {
-              console.error('Logout error:', err);
-            }
-            clearAccessToken();
-
-            window.location.href = '/login';
-          }}
-          className="hover:underline"
-        >
+        <Button onClick={() => setShowAlert(true)} className="hover:underline">
           Disconnect
         </Button>
+        {showAlert && (
+          <div className="p-4">
+            <Alert variant="destructive">
+              <AlertTitle>Déconnexion</AlertTitle>
+              <AlertDescription>
+                <p>Es-tu sûr de vouloir te déconnecter ?</p>
+                <Button
+                  onClick={async () => {
+                    try {
+                      await fetch(`${mainUrl}/api/auth/logout`, {
+                        method: 'POST',
+                        credentials: 'include',
+                      });
+                    } catch (err) {
+                      console.error('Logout error:', err);
+                    }
+                    clearAccessToken();
+
+                    window.location.href = '/login';
+                  }}
+                >
+                  Oui
+                </Button>
+              </AlertDescription>
+            </Alert>
+          </div>
+        )}
       </nav>
 
       <div className="p-6">

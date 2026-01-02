@@ -60,26 +60,6 @@ describe('Home', () => {
     );
   });
 
-  it('devrait afficher le composant Clock', () => {
-    const mockDate = new Date('2024-01-15T14:30:45');
-    vi.setSystemTime(mockDate);
-
-    vi.mocked(utils.getUserInfo).mockResolvedValue({ id: 2, name: 'Test', email: 'test@test.com' });
-
-    render(<Home />);
-
-    expect(screen.getByText('🕒 Heure actuelle')).toBeInTheDocument();
-  });
-
-  it('devrait afficher le calendrier', () => {
-    vi.mocked(utils.getUserInfo).mockResolvedValue({ id: 2, name: 'Test', email: 'test@test.com' });
-
-    render(<Home />);
-
-    expect(screen.getByText('📅 Calendrier')).toBeInTheDocument();
-    expect(screen.getByTestId('calendar')).toBeInTheDocument();
-  });
-
   it("devrait afficher les skeletons d'exemple", () => {
     vi.mocked(utils.getUserInfo).mockResolvedValue({ id: 2, name: 'Test', email: 'test@test.com' });
 

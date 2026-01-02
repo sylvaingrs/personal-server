@@ -1,12 +1,12 @@
 import { Router } from 'express';
 import { RowDataPacket } from 'mysql2/promise';
 
-import { authenticateToken } from '../middleware/auth';
+import { authenticateToken, requireRole } from '../middleware/auth';
 import { pool } from '../app';
 
 const router = Router();
 
-router.get('/users', authenticateToken, async (req, res) => {
+router.get('/users', authenticateToken, requireRole(['user', 'admin']), async (req, res) => {
   try {
     const [rows] = await pool!.query(`SELECT * FROM users`);
     res.json(rows);
@@ -18,7 +18,7 @@ router.get('/users', authenticateToken, async (req, res) => {
   }
 });
 
-router.get('/test', authenticateToken, (req, res) => {
+router.get('/test', authenticateToken, requireRole(['user', 'admin']), (req, res) => {
   const user = req.user;
   return res.json({
     email: user?.email,
@@ -31,9 +31,9 @@ type UserData = RowDataPacket & {
   email: string;
 };
 
-router.get('/me', authenticateToken, async (req, res) => {
+router.get('/me', authenticateToken, requireRole(['user', 'admin']), async (req, res) => {
   const [rows] = await pool!.query<UserData[]>(
-    `SELECT id, name, email FROM users WHERE users.id=?`,
+    `SELECT id, name, email, role FROM users WHERE users.id=?`,
     [req.user?.userId],
   );
   if (rows.length) {
@@ -41,6 +41,7 @@ router.get('/me', authenticateToken, async (req, res) => {
       id: rows[0].id,
       name: rows[0].name,
       email: rows[0].email,
+      role: rows[0].role,
     });
   }
 });
