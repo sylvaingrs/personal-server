@@ -8,9 +8,11 @@
     "format": "prettier --write .",
     "db:export:dev": "mysqldump --skip-comments --skip-triggers --skip-tz-utc --no-tablespaces --single-transaction -h127.0.0.1 -P3306 -uappuser -pmypassword appdb > mariadb/dumps/init.sql",
     "db:import:dev": "mysql -h127.0.0.1 -P3306 -uappuser -pmypassword appdb < mariadb/dumps/init.sql",
+    "db:import:test": "mysql -h127.0.0.1 -P3307 -uapptestuser -pmytestpassword apptestdb < mariadb/dumps/test-empty.sql",
+    "db:export:test": "mysqldump --skip-comments --skip-triggers --skip-tz-utc --no-tablespaces --single-transaction -h127.0.0.1 -P3307 -uapptestuser -pmytestpassword apptestdb > mariadb/dumps/test-empty.sql",
     "db:export:prod": "docker exec mariadb mariadb-dump --skip-comments --skip-tz-utc --no-tablespaces --single-transaction -uappuser -pmypassword appdb > mariadb/dumps/init.sql",
     "db:import:prod": "docker exec -i mariadb mariadb -uappuser -pmypassword appdb < mariadb/dumps/init.sql",
-    "db:import:test": "mysql -h127.0.0.1 -P3307 -uapptestuser -pmytestpassword apptestdb < mariadb/dumps/test-empty.sql"
+    "db:dev-to-test": "mysqldump --skip-comments --skip-triggers --skip-tz-utc --no-tablespaces --single-transaction --no-data -h127.0.0.1 -P3306 -uappuser -pmypassword appdb > mariadb/dumps/test-empty.sql"
   },
   "devDependencies": {
     "@eslint/js": "^9.38.0",

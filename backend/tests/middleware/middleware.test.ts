@@ -39,6 +39,7 @@ describe('Protected routes', () => {
           userId: 1,
           email: 'test@test.com',
           type: 'access',
+          role: 'user',
         },
         tokenExpiry,
       );

@@ -1,13 +1,17 @@
 import jwt, { JwtPayload } from 'jsonwebtoken';
 
+import { UserRole } from './utils';
+
 interface AccessTokenPayload extends JwtPayload {
   userId: number;
   email: string;
+  role: UserRole;
   type: 'access';
 }
 
 interface RefreshTokenPayload extends JwtPayload {
   userId: number;
+  role: UserRole;
   type: 'refresh';
 }
 
@@ -34,7 +38,12 @@ export function verifyToken(token: string): AnyTokenPayload | null {
 
   try {
     const decoded = jwt.verify(token, secret);
-    if (typeof decoded === 'string' || !('userId' in decoded) || !('type' in decoded)) {
+    if (
+      typeof decoded === 'string' ||
+      !('userId' in decoded) ||
+      !('type' in decoded) ||
+      !('role' in decoded)
+    ) {
       return null;
     }
 

@@ -4,7 +4,7 @@ import { Router } from 'express';
 import { pool } from '../app';
 import { comparePassword, hashPassword } from '../utils/hash';
 import { generateToken, verifyToken } from '../utils/jwt';
-import { authenticateToken } from '../middleware/auth';
+import { authenticateToken, requireRole } from '../middleware/auth';
 import { REFRESH_TOKEN_MAX_AGE, REFRESH_TOKEN_OPTIONS } from '../utils/cookie.config';
 
 type UserEmailHashPasswordRow = RowDataPacket & {
@@ -54,11 +54,14 @@ router.post('/login', async (req, res) => {
     const refreshTokenExpiry = Number(process.env.JWT_REFRESH_EXPIRES_IN) || 10080;
 
     const accessToken = generateToken(
-      { userId: user.id, email: user.email, type: 'access' },
+      { userId: user.id, email: user.email, type: 'access', role: 'user' },
       tokenExpiry,
     );
 
-    const refreshToken = generateToken({ userId: user.id, type: 'refresh' }, refreshTokenExpiry);
+    const refreshToken = generateToken(
+      { userId: user.id, type: 'refresh', role: 'user' },
+      refreshTokenExpiry,
+    );
 
     await pool!.query(
       `INSERT INTO refresh_tokens (user_id, token, expires_at) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 7 DAY))`,
@@ -109,9 +112,12 @@ router.post('/register', async (req, res) => {
     const tokenExpiry = Number(process.env.JWT_EXPIRES_IN) || 300;
     const refreshTokenExpiry = Number(process.env.JWT_REFRESH_EXPIRES_IN) || 10080;
 
-    const accessToken = generateToken({ userId, email, type: 'access' }, tokenExpiry);
+    const accessToken = generateToken({ userId, email, type: 'access', role: 'user' }, tokenExpiry);
 
-    const refreshToken = generateToken({ userId, type: 'refresh' }, refreshTokenExpiry);
+    const refreshToken = generateToken(
+      { userId, type: 'refresh', role: 'user' },
+      refreshTokenExpiry,
+    );
 
     await pool!.query(
       `INSERT INTO refresh_tokens (user_id, token, expires_at) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 7 DAY))`,
@@ -129,7 +135,7 @@ router.post('/register', async (req, res) => {
   }
 });
 
-router.get('/verify', authenticateToken, (req, res) => {
+router.get('/verify', authenticateToken, requireRole(['admin', 'user']), (req, res) => {
   res.json({
     authenticated: true,
     user: req.user,
@@ -171,7 +177,7 @@ router.post('/refresh', async (req, res) => {
 
     const tokenExpiry = Number(process.env.JWT_EXPIRES_IN) || 300;
     const newAccessToken = generateToken(
-      { userId: decoded.userId, email: userEmail, type: 'access' },
+      { userId: decoded.userId, email: userEmail, type: 'access', role: 'user' },
       tokenExpiry,
     );
 

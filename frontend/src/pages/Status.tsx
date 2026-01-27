@@ -40,18 +40,19 @@ export default function Status() {
   }, [fetchDataFront]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md shadow-2xl">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-2xl">Frontend React</CardTitle>
-            {dataHealth && (
-              <Badge variant={dataHealth.status === 'online' ? 'default' : 'destructive'}>
-                {dataHealth.status}
-              </Badge>
-            )}
-            <CardDescription>Connected to Node.js API on Raspberry Pi 5</CardDescription>
-          </div>
+    <div className="s-container s-flex justify-center">
+      <Card className="">
+        <CardHeader className="flex flex-row">
+          <CardTitle className="text-2xl mr-2">Frontend React</CardTitle>
+          {dataHealth && (
+            <Badge
+              className="mr-2"
+              variant={dataHealth.status === 'online' ? 'default' : 'destructive'}
+            >
+              {dataHealth.status}
+            </Badge>
+          )}
+          <CardDescription>Connected to Node.js API on Raspberry Pi 5</CardDescription>
         </CardHeader>
 
         <CardContent className="space-y-4">

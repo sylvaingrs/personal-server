@@ -1,13 +1,17 @@
 import { Request as ExpressRequest, Response as ExpressResponse, NextFunction } from 'express';
 
 import { verifyToken } from '../utils/jwt';
+import { UserRole } from '../utils/utils';
+
+export interface AuthenticatedUser {
+  userId: number;
+  email?: string;
+  role: UserRole;
+}
 
 declare module 'express-serve-static-core' {
   interface Request {
-    user?: {
-      userId: number;
-      email?: string;
-    };
+    user?: AuthenticatedUser;
   }
 }
 
@@ -35,3 +39,14 @@ export function authenticateToken(
 
   next();
 }
+
+export const requireRole =
+  (roles: Array<UserRole>) => (req: ExpressRequest, res: ExpressResponse, next: NextFunction) => {
+    const user = req.user;
+
+    if (!user || !roles.includes(user.role)) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
+    next();
+  };
