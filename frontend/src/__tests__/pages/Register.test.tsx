@@ -89,7 +89,7 @@ describe('Register', () => {
   it("devrait afficher une erreur en cas d'échec", async () => {
     const mockResponse = {
       data: null,
-      error: { message: 'Cet email est déjà utilisé' },
+      error: { name: 'test', message: 'Cet email est déjà utilisé' },
     };
 
     vi.mocked(utils.fetchData).mockResolvedValue(mockResponse);
