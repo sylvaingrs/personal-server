@@ -24,6 +24,7 @@ describe('JWT utils', () => {
           userId: 1,
           email: 'test@test.com',
           type: 'access',
+          role: 'user',
         },
         tokenExpiry,
       );
@@ -40,6 +41,7 @@ describe('JWT utils', () => {
             userId: 1,
             email: 'test@test.com',
             type: 'access',
+            role: 'user',
           },
           tokenExpiry,
         ),
@@ -54,6 +56,7 @@ describe('JWT utils', () => {
           userId: 1,
           email: 'test@test.com',
           type: 'access',
+          role: 'user',
         },
         tokenExpiry,
       );
@@ -71,6 +74,7 @@ describe('JWT utils', () => {
         {
           userId: 1,
           type: 'refresh',
+          role: 'user',
         },
         refreshTokenExpiry,
       );
@@ -92,6 +96,7 @@ describe('JWT utils', () => {
         {
           userId: 1,
           type: 'refresh',
+          role: 'user',
         },
         refreshTokenExpiry,
       );
