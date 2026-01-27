@@ -40,7 +40,9 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.use(function (req, res, next) {
-  console.log(`[${req.method}] : ${req.url} {${JSON.stringify(req.body)}}`);
+  console.log(
+    `[${req.method}] : ${req.url} |${JSON.stringify(req.body)}| -> |${res.statusCode} : ${res.statusMessage?.toString()}|`,
+  );
   next();
 });
 
