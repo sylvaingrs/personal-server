@@ -6,7 +6,7 @@ import { pool } from '../app';
 
 const router = Router();
 
-router.get('/users', authenticateToken, requireRole(['user', 'admin']), async (req, res) => {
+router.get('/users', authenticateToken, requireRole(['admin']), async (req, res) => {
   try {
     const [rows] = await pool!.query(`SELECT * FROM users`);
     res.json(rows);

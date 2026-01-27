@@ -45,7 +45,9 @@ export const requireRole =
     const user = req.user;
 
     if (!user || !roles.includes(user.role)) {
-      return res.status(403).json({ message: 'Access denied' });
+      return res.status(403).json({
+        message: `Access denied : require role [${roles}] but have [${JSON.stringify(user) || 'no user'}]`,
+      });
     }
 
     next();
