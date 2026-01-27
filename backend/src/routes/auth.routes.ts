@@ -6,11 +6,13 @@ import { comparePassword, hashPassword } from '../utils/hash';
 import { generateToken, verifyToken } from '../utils/jwt';
 import { authenticateToken, requireRole } from '../middleware/auth';
 import { REFRESH_TOKEN_MAX_AGE, REFRESH_TOKEN_OPTIONS } from '../utils/cookie.config';
+import { UserRole } from '../utils/utils';
 
 type UserEmailHashPasswordRow = RowDataPacket & {
   id: number;
   email: string;
   hash_password: string;
+  role: UserRole;
 };
 
 type RefreshTokenRow = RowDataPacket & {
@@ -20,8 +22,9 @@ type RefreshTokenRow = RowDataPacket & {
   expires_at: Date;
 };
 
-type EmailRow = RowDataPacket & {
+type EmailAndRoleRow = RowDataPacket & {
   email: string;
+  role: UserRole;
 };
 
 const router = Router();
@@ -30,7 +33,7 @@ router.post('/login', async (req, res) => {
   const { email, password } = req.body;
   try {
     const [rows] = await pool!.query<UserEmailHashPasswordRow[]>(
-      `SELECT id, email, hash_password FROM users WHERE users.email = ?`,
+      `SELECT id, email, hash_password, role FROM users WHERE users.email = ?`,
       [email],
     );
 
@@ -38,7 +41,14 @@ router.post('/login', async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    const user = { id: rows[0].id, email: rows[0].email, hashPassword: rows[0].hash_password };
+    const user = {
+      id: rows[0].id,
+      email: rows[0].email,
+      hashPassword: rows[0].hash_password,
+      role: rows[0].role,
+    };
+
+    console.log('user : ', user);
 
     if (!user) {
       return res.status(401).json({ error: 'Email incorrect' });
@@ -54,12 +64,12 @@ router.post('/login', async (req, res) => {
     const refreshTokenExpiry = Number(process.env.JWT_REFRESH_EXPIRES_IN) || 10080;
 
     const accessToken = generateToken(
-      { userId: user.id, email: user.email, type: 'access', role: 'user' },
+      { userId: user.id, email: user.email, type: 'access', role: user.role },
       tokenExpiry,
     );
 
     const refreshToken = generateToken(
-      { userId: user.id, type: 'refresh', role: 'user' },
+      { userId: user.id, type: 'refresh', role: user.role },
       refreshTokenExpiry,
     );
 
@@ -92,9 +102,10 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ message: 'Missing required fields' });
     }
 
-    const [rows] = await pool!.query<UserEmail[]>(`SELECT email FROM users WHERE users.email = ?`, [
-      email,
-    ]);
+    const [rows] = await pool!.query<UserEmail[]>(
+      `SELECT email, role FROM users WHERE users.email = ?`,
+      [email],
+    );
 
     if (rows.length > 0) {
       return res.status(400).json({ message: 'user already registered' });
@@ -103,8 +114,8 @@ router.post('/register', async (req, res) => {
     const hashedPassword = await hashPassword(password);
 
     const [result] = await pool!.query<ResultSetHeader>(
-      `INSERT INTO users (name, email, hash_password, created_at, updated_at) VALUES (?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
-      [name, email, hashedPassword],
+      `INSERT INTO users (name, email, hash_password, created_at, updated_at, role) VALUES (?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, ?)`,
+      [name, email, hashedPassword, 'user'],
     );
 
     const userId = result.insertId;
@@ -165,9 +176,10 @@ router.post('/refresh', async (req, res) => {
       return res.status(401).json({ error: 'Refresh token expired or revoked' });
     }
 
-    const [userRows] = await pool!.query<EmailRow[]>('SELECT email FROM users WHERE id = ?', [
-      decoded.userId,
-    ]);
+    const [userRows] = await pool!.query<EmailAndRoleRow[]>(
+      'SELECT email, role FROM users WHERE id = ?',
+      [decoded.userId],
+    );
 
     if (userRows.length === 0) {
       return res.status(404).json({ error: 'User not found' });
@@ -177,7 +189,7 @@ router.post('/refresh', async (req, res) => {
 
     const tokenExpiry = Number(process.env.JWT_EXPIRES_IN) || 300;
     const newAccessToken = generateToken(
-      { userId: decoded.userId, email: userEmail, type: 'access', role: 'user' },
+      { userId: decoded.userId, email: userEmail, type: 'access', role: userRows[0].role },
       tokenExpiry,
     );
 
